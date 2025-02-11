@@ -7,23 +7,26 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Limelight extends SubsystemBase{
   NetworkTableInstance tables = NetworkTableInstance.getDefault();
-  NetworkTable limeInfo = tables.getTable("limelight");
+  NetworkTable right = tables.getTable("limelight");
+  NetworkTable left = tables.getTable("limelight");
+  boolean useRight = true;
 
-
+  public void setlimeLight(boolean useRight){
+    this.useRight = useRight;
+  }
   public double getx() {
     double p = .06;
-    return limeInfo.getEntry("ty").getDouble(0)*p;
+    return -(useRight?right:left).getEntry("ty").getDouble(0)*p;
   }
 
   public double getAngle() {
-    double p = .01;
-    return -limeInfo.getEntry("tx").getDouble(0)*p;
+    double p = .1;
+    return (useRight?right:left).getEntry("tx").getDouble(0)*p;
   }
 
   @Override
   public void periodic() {
-      // TODO Auto-generated method stub
       super.periodic();
-      SmartDashboard.putNumber("vis out", limeInfo.getEntry("tx").getDouble(0));
+      SmartDashboard.putNumber("vis out", (useRight?right:left).getEntry("tx").getDouble(0));
   }
 }

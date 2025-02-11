@@ -5,6 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.math.util.Units;
+import frc.robot.subsystems.ArmPosition;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 
 /**
@@ -18,8 +19,30 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 public final class Constants {
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
+    public static final int kHelperControllerPort = 1;
   }
+
   public static final double DEADBAND = 0.1;
   public static final double maximumSpeed = Units.feetToMeters(4.5);
   public static final TelemetryVerbosity telemetryVerbosity = TelemetryVerbosity.HIGH;
+
+  public static class ArmConstants {
+    public static final double shoulderOffset = 0;
+    public static final double shoulderMin = 0;
+    public static final double shoulderMax = 0;
+    public static final double shoulderID  = -1;
+
+    public static final double wristOffset = 0;
+    public static final double wristID  = -1;
+
+    public static final double telescopeOffset = 0;
+    public static final double telescopeMin = 0;
+    public static final double telescopeMax = 0;
+    public static final double telescopeID  = -1;
+
+    public static final ArmPosition[] positions = {
+      new ArmPosition(0, 0, 0, "example")
+    };
+    
+  }
 }
