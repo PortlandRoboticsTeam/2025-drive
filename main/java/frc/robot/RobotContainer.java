@@ -7,13 +7,22 @@ package frc.robot;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.SwerveSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
+import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.math.MathUtil;
 
-// import edu.wpi.first.wpilibj.DriverStation;
-// DriverStation.getJoystickName(0);
+import java.util.function.BooleanSupplier;
+
+import com.studica.frc.AHRS;
+import com.studica.frc.AHRS.NavXComType;
+import com.studica.frc.jni.AHRSJNI;
+
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 
 /**
@@ -23,24 +32,39 @@ import edu.wpi.first.math.MathUtil;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
- 
+  
   private final SwerveSubsystem swerve = new SwerveSubsystem();
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final static CommandGenericHID m_driverController =
-        new CommandGenericHID(OperatorConstants.kDriverControllerPort);
-    private Command drive; 
-    
+        new CommandGenericHID(OperatorConstants.driverControllerPort);
+
+  private final static CommandPS4Controller m_helperController =
+        new CommandPS4Controller(OperatorConstants.helperControllerPort);
+
+  private Command driveCommand; 
+  private boolean isFieldOriented = true;
+
+  InstantCommand robotOrientCommand = new InstantCommand(()->{
+    isFieldOriented = true;
+    System.out.println("#### Operator: entered robot-oriented mode :: "+isFieldOriented);
+  });
+  InstantCommand fieldOrientCommand = new InstantCommand(()->{
+    isFieldOriented = false;
+    System.out.println("#### Operator: entered field-oriented mode :: "+isFieldOriented);
+  });
+
+
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
-      drive = swerve.driveCommand(
+      driveCommand = swerve.driveCommand(
           () -> -MathUtil.applyDeadband(m_driverController.getRawAxis(1),
               Constants.DEADBAND),
           () -> -MathUtil.applyDeadband(m_driverController.getRawAxis(0),
               Constants.DEADBAND),
           () -> MathUtil.applyDeadband(m_driverController.getRawAxis(2),
-              Constants.DEADBAND));
-  
-      swerve.setDefaultCommand(drive);
+              Constants.DEADBAND), 
+          () -> isFieldOriented);
+      swerve.setDefaultCommand(driveCommand);
       // Configure the trigger bindings
       configureBindings();
     }
@@ -55,10 +79,12 @@ public class RobotContainer {
      * joysticks}.
      */
     private void configureBindings() {
-      m_driverController.button(1).onTrue(swerve.getResetGyro());
+      m_driverController.button(11).onTrue(swerve.getResetGyro());
       m_driverController.button(2).whileTrue(swerve.vishionDrive());
+      m_driverController.button(5).onFalse(fieldOrientCommand);
+      m_driverController.button(5).onTrue(robotOrientCommand);
     }
-  
+    
     /**
      * Use this to pass the autonomous command to the main {@link Robot} class.
      *
@@ -68,7 +94,7 @@ public class RobotContainer {
       // An example command will be run in autonomous
       return swerve.getAutonomousCommand("test");
     }
-  
+    
     public SwerveSubsystem getSwerve() {
       return swerve;
     }

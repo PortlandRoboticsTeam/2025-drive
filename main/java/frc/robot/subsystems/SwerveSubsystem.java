@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
@@ -61,6 +62,20 @@ public class SwerveSubsystem extends SubsystemBase{
                         false);
     });
   }
+
+  // this overload was added by michael diorio
+  public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier angularRotationX, BooleanSupplier isFieldOriented)
+  {
+    return run(() -> {
+      // Make the robot move
+      swerveDrive.drive(new Translation2d(translationX.getAsDouble() * swerveDrive.getMaximumChassisVelocity(),
+                                          translationY.getAsDouble() * swerveDrive.getMaximumChassisVelocity()),
+                        angularRotationX.getAsDouble() * swerveDrive.getMaximumChassisAngularVelocity(),
+                        isFieldOriented.getAsBoolean(),
+                        false);
+    });
+  }
+
   @Override
   public void periodic() {
     updateOdometry();

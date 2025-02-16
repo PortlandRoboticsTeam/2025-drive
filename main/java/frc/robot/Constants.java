@@ -18,8 +18,8 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
  */
 public final class Constants {
   public static class OperatorConstants {
-    public static final int kDriverControllerPort = 0;
-    public static final int kHelperControllerPort = 1;
+    public static final int driverControllerPort = 0;
+    public static final int helperControllerPort = 1;
   }
 
   public static final double DEADBAND = 0.1;
