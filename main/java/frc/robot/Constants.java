@@ -27,21 +27,52 @@ public final class Constants {
   public static final TelemetryVerbosity telemetryVerbosity = TelemetryVerbosity.HIGH;
 
   public static class ArmConstants {
+    public static final double manualControlJoystickDeaband = 0.1;
+
     public static final double shoulderOffset = 0;
     public static final double shoulderMin = 0;
     public static final double shoulderMax = 0;
-    public static final double shoulderID  = -1;
+    public static final int shoulder1ID  = -1;
+    public static final int shoulder2ID  = -1;
+    public static final int shoulderEncoderID  = -1;
+
 
     public static final double wristOffset = 0;
-    public static final double wristID  = -1;
+    public static final int wristID  = -1;
+    public static final int wristEncoderID  = -1;
+
 
     public static final double telescopeOffset = 0;
     public static final double telescopeMin = 0;
     public static final double telescopeMax = 0;
-    public static final double telescopeID  = -1;
+    public static final int telescopeID  = -1;
+    public static final int telescopeEncoderID  = -1;
+
+
 
     public static final ArmPosition[] positions = {
-      new ArmPosition(0, 0, 0, "example")
+      new ArmPosition(0, 0, 0, "Rest: 0"),
+
+      new ArmPosition(0, 0, 0, "Tray: 1"),
+      new ArmPosition(0, 0, 0, "Low Right Coral: 2"),
+      new ArmPosition(0, 0, 0, "Low Left Coral: 3"),
+      new ArmPosition(0, 0, 0, "Low Reef Ball: 4"),
+      new ArmPosition(0, 0, 0, "Mid Right Coral: 5"),
+      new ArmPosition(0, 0, 0, "Mid Left Coral: 6"),
+      new ArmPosition(0, 0, 0, "High Reef Ball: 7"),
+      new ArmPosition(0, 0, 0, "High Right Coral: 8"),
+      new ArmPosition(0, 0, 0, "High Left Coral: 9"),
+
+      new ArmPosition(0, 0, 0, "Ready to Climb: 10"),
+      new ArmPosition(0, 0, 0, "Climbing: 11"),
+      new ArmPosition(0, 0, 0, "Collect Stacked Algae: 12"),
+      new ArmPosition(0, 0, 0, "Collect Standing Coral: 13"),
+      new ArmPosition(0, 0, 0, "Collect Floor Algae: 14"),
+      new ArmPosition(0, 0, 0, "Collect Floor Coral: 15"),
+
+      new ArmPosition(0, 0, 0, "Collect Coral Human: 16"),
+      new ArmPosition(0, 0, 0, "Score Algae to Human: 17"),
+      new ArmPosition(0, 0, 0, "Score Algae to Barge: 18"),
     };
     
   }
