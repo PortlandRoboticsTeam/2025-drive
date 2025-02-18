@@ -8,6 +8,7 @@ public class Encoder {
     CANcoder cancoder;
     DutyCycleEncoder dutyEncoder;
     EncoderType type;
+    double offset = 0;
     public enum EncoderType{
         cancoder,
         DutyCycle
@@ -27,11 +28,24 @@ public class Encoder {
     public double getValue(){
         switch (type) {
             case cancoder:
-                return cancoder.getAbsolutePosition().getValueAsDouble();
+                return cancoder.getAbsolutePosition().getValueAsDouble()-offset;
             case DutyCycle:
-                return dutyEncoder.get();
+                return dutyEncoder.get()-offset;
             default:
             return-1;
+        }
+    }
+    public void setOffset(double offset){
+        this.offset = offset;
+    }
+    public boolean isConnected(){
+        switch (type) {
+            case cancoder:
+                return cancoder.isConnected();
+            case DutyCycle:
+                return dutyEncoder.isConnected();
+            default:
+                return false;
         }
     }
 }
