@@ -3,8 +3,6 @@ package frc.robot.subsystems;
 // Import necessary libraries for hardware control and PID management
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Encoder.EncoderType;
 import frc.robot.subsystems.Motor.MotorType;
@@ -16,12 +14,11 @@ public class Joint extends SubsystemBase {
     private Encoder encoder; // Encoder to read joint position
     private Motor motor; // Motor controlling the joint movement
     private double setpoint; // the desired value for the PID contoller
-    private double[] setpoints; // Array of predefined setpoints for the joint
     private int jointNum; // ID of the joint
     private boolean inverted; // Weather or not the encoder is inverted
 
     // Constructor to initialize the Joint subsystem
-    public Joint(int jointNum, int motorID, int encoderID, boolean inverted, int defaultSetpointIndex, double[] setpoints, double kP, double kI, double kD,MotorType motorType,EncoderType eType) {
+    public Joint(int jointNum, int motorID, int encoderID, boolean inverted, int defaultSetpoint, double kP, double kI, double kD,MotorType motorType,EncoderType eType) {
         // Initialize PID controller with specified gains
         pid = new PIDController(kP, kI, kD);
         // Enable continuous input for angles, wrapping around at -180 to 180 degrees
@@ -30,10 +27,24 @@ public class Joint extends SubsystemBase {
         encoder = new Encoder(encoderID,eType);
         // Initialize motor with the given motor ID
         motor = new Motor(motorID,motorType);
-        // Store the setpoints and initialize the current position
-        this.setpoints = setpoints;
         //sets the default setpoint
-        this.setpoint = setpoints[defaultSetpointIndex];
+        this.setpoint = defaultSetpoint;
+        // Initalize the jointNum
+        this.jointNum = jointNum;
+        // Initalized inverted
+        this.inverted = inverted;
+    }
+    public Joint(int jointNum, int motorID, Encoder _encoder, boolean inverted, int defaultSetpoint, double kP, double kI, double kD,MotorType motorType) {
+        // Initialize PID controller with specified gains
+        pid = new PIDController(kP, kI, kD);
+        // Enable continuous input for angles, wrapping around at -180 to 180 degrees
+        pid.enableContinuousInput(-180, 180);
+        // Initialize encoder with the given encoder ID
+        encoder = _encoder;
+        // Initialize motor with the given motor ID
+        motor = new Motor(motorID,motorType);
+        //sets the default setpoint
+        this.setpoint = defaultSetpoint;
         // Initalize the jointNum
         this.jointNum = jointNum;
         // Initalized inverted
@@ -98,11 +109,6 @@ public class Joint extends SubsystemBase {
         return jointNum;
     }
 
-    // Method to get the array of setpoints
-    public double[] getSetpoints() {
-        return setpoints;
-    }
-
     // Method to stop motor
     public void stop() {
         setSpeed(0); // Method to stop the motor
@@ -119,21 +125,13 @@ public class Joint extends SubsystemBase {
 
     @Override
     public String toString(){
-        String start = "Joint number:"+jointNum+"\n setpoint : "+setpoint+"\n positions: ";
-        String posString = "{";
-        for (double i : setpoints) {
-            posString = posString+i+", ";              
-        }
-        posString = posString.substring(0,posString.length()-2)+"}\n";
+        String start = "Joint number:"+jointNum+"\n setpoint : "+setpoint+"\n";
         String pidString = "P: "+pid.getP()+"\nI: "+pid.getI()+"\nD: "+pid.getD()+"\n";
         String currentPos = "current angle:"+encoder.getValue()+"\n";
-        return start+posString+pidString+currentPos;
+        return start+pidString+currentPos;
     }
-    public void toSetpoint(int point){
-        setSetpoint(setpoints[point]);
-    }
+    
     public Encoder getEncoder() {
         return encoder;
     } 
 }
-

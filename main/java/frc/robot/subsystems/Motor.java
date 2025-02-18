@@ -11,17 +11,18 @@ public class Motor {
 
     public enum MotorType{
         SparkMax,
-        talon
+        talon,
+        Ghost // this is for motors that dont exist yet
     }
     public Motor(int motorID, MotorType type) {
         this.type = type;
         switch (type) {
             case SparkMax:
                 sparkMax = new SparkMax(motorID, SparkLowLevel.MotorType.kBrushless);
-                break;
+            break;
             case talon:
                 talon = new TalonFX(motorID);
-                break;
+            break;
         
             default:
                 break;

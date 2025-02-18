@@ -10,13 +10,14 @@ public class Encoder {
     EncoderType type;
     double offset = 0;
     public enum EncoderType{
-        cancoder,
-        DutyCycle
+        CANCoder,
+        DutyCycle,
+        Ghost
     }
     public Encoder(int id, EncoderType type){
         this.type = type;
         switch (type) {
-            case cancoder:
+            case CANCoder:
                 cancoder = new CANcoder(id);
                 break;
             case DutyCycle:
@@ -27,7 +28,7 @@ public class Encoder {
     }
     public double getValue(){
         switch (type) {
-            case cancoder:
+            case CANCoder:
                 return cancoder.getAbsolutePosition().getValueAsDouble()-offset;
             case DutyCycle:
                 return dutyEncoder.get()-offset;
@@ -40,7 +41,7 @@ public class Encoder {
     }
     public boolean isConnected(){
         switch (type) {
-            case cancoder:
+            case CANCoder:
                 return cancoder.isConnected();
             case DutyCycle:
                 return dutyEncoder.isConnected();

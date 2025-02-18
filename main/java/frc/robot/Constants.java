@@ -7,6 +7,8 @@ package frc.robot;
 import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.ArmPosition;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
+import frc.robot.subsystems.Motor.MotorType;
+import frc.robot.subsystems.Encoder.EncoderType;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -32,21 +34,29 @@ public final class Constants {
     public static final double shoulderOffset = 0;
     public static final double shoulderMin = 0;
     public static final double shoulderMax = 0;
-    public static final int shoulder1ID  = -1;
-    public static final int shoulder2ID  = -1;
-    public static final int shoulderEncoderID  = -1;
+    public static final int shoulder1ID  = 13;
+    public static final int shoulder2ID  = 14;
+    public static final int shoulderEncoderID  = 0;
+    public static final MotorType shoulder1Type = MotorType.SparkMax;
+    public static final MotorType shoulder2Type = MotorType.SparkMax;
+    public static final EncoderType shoulderEncoderType = EncoderType.DutyCycle;
 
 
     public static final double wristOffset = 0;
-    public static final int wristID  = -1;
-    public static final int wristEncoderID  = -1;
+    public static final int wristID  = 31;
+    public static final int wristEncoderID  = 0;
+    public static final MotorType wristType = MotorType.Ghost;
+    public static final EncoderType wristEncoderType = EncoderType.Ghost;
+
 
 
     public static final double telescopeOffset = 0;
     public static final double telescopeMin = 0;
     public static final double telescopeMax = 0;
-    public static final int telescopeID  = -1;
-    public static final int telescopeEncoderID  = -1;
+    public static final int telescopeID  = 31;
+    public static final int telescopeEncoderID  = 0;
+    public static final MotorType telescopeType = MotorType.Ghost;
+    public static final EncoderType telescopeEncoderType = EncoderType.Ghost;
 
 
 

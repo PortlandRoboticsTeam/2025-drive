@@ -32,10 +32,10 @@ public class RobotContainer {
   
   // hardware objects vv
   private final SwerveSubsystem swerve = new SwerveSubsystem();
-  Joint shoulder1 = new Joint(0, ArmConstants.shoulder1ID, ArmConstants.shoulderEncoderID, false, 0, null, 0, 0, 0, null);
-  Joint shoulder2 = new Joint(0, ArmConstants.shoulder2ID, ArmConstants.shoulderEncoderID, false, 0, null, 0, 0, 0, null);
-  Joint wrist     = new Joint(2, ArmConstants.wristID   , ArmConstants.wristEncoderID   , false, 0, null, 0, 0, 0, null);
-  Telescope telescope = new Telescope(1, ArmConstants.telescopeID, ArmConstants.telescopeEncoderID, false, 0, null, 0, 0, 0, null);
+  Joint shoulder1     = new Joint    (0, ArmConstants.shoulder1ID, ArmConstants.shoulderEncoderID , false, 0, 0, 0, 0, ArmConstants.shoulder1Type, ArmConstants.shoulderEncoderType );
+  Joint shoulder2     = new Joint    (0, ArmConstants.shoulder2ID, shoulder1.getEncoder()         , false, 0, 0, 0, 0, ArmConstants.shoulder2Type);
+  Joint wrist         = new Joint    (2, ArmConstants.wristID    , ArmConstants.wristEncoderID    , false, 0, 0, 0, 0, ArmConstants.wristType    , ArmConstants.wristEncoderType    );
+  Telescope telescope = new Telescope(1, ArmConstants.telescopeID, ArmConstants.telescopeEncoderID, false, 0, 0, 0, 0, ArmConstants.telescopeType, ArmConstants.telescopeEncoderType);
 
   // controllers vv
   private final static CommandGenericHID m_driverController =
