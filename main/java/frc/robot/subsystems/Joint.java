@@ -1,21 +1,19 @@
 package frc.robot.subsystems;
 
 // Import necessary libraries for hardware control and PID management
-import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.hardware.core.CoreCANcoder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.Encoder.EncoderType;
 import frc.robot.subsystems.Motor.MotorType;
 
 
 // Joint class extends SubsystemBase, allowing integration into the FRC command-based framework
 public class Joint extends SubsystemBase {
     private PIDController pid; // PID controller for managing motor position
-    private CANcoder encoder; // Encoder to read joint position
+    private Encoder encoder; // Encoder to read joint position
     private Motor motor; // Motor controlling the joint movement
     private double setpoint; // the desired value for the PID contoller
     private double[] setpoints; // Array of predefined setpoints for the joint
@@ -23,13 +21,13 @@ public class Joint extends SubsystemBase {
     private boolean inverted; // Weather or not the encoder is inverted
 
     // Constructor to initialize the Joint subsystem
-    public Joint(int jointNum, int motorID, int encoderID, boolean inverted, int defaultSetpointIndex, double[] setpoints, double kP, double kI, double kD,MotorType motorType) {
+    public Joint(int jointNum, int motorID, int encoderID, boolean inverted, int defaultSetpointIndex, double[] setpoints, double kP, double kI, double kD,MotorType motorType,EncoderType eType) {
         // Initialize PID controller with specified gains
         pid = new PIDController(kP, kI, kD);
         // Enable continuous input for angles, wrapping around at -180 to 180 degrees
         pid.enableContinuousInput(-180, 180);
         // Initialize encoder with the given encoder ID
-        encoder = new CANcoder(encoderID);
+        encoder = new Encoder(encoderID,eType);
         // Initialize motor with the given motor ID
         motor = new Motor(motorID,motorType);
         // Store the setpoints and initialize the current position
@@ -53,8 +51,8 @@ public class Joint extends SubsystemBase {
     }
 
     // Method to set the current position index
-    public Command setSetpoint(double position) {
-        return new InstantCommand(()->this.setpoint = position,this);
+    public void setSetpoint(double position) {
+        this.setpoint = position;
     }
 
     // Method to get the current position index
@@ -77,17 +75,17 @@ public class Joint extends SubsystemBase {
 
     // Method to get the encoder's position in terms of rotations
     public double getRotations() {
-        return encoder.getPosition().getValueAsDouble();
+        return encoder.getValue();
     }
 
     // Method to get the angle in degrees based on encoder position
     public double getAngleDegrees() {
-        return encoder.getPosition().getValueAsDouble() * 360 % 360;
+        return encoder.getValue() * 360 % 360;
     }
 
     // Method to get the angle in radians based on encoder position
     public double getAngleRadians() {
-        return encoder.getPosition().getValueAsDouble() * 2 * Math.PI;
+        return encoder.getValue() * 2 * Math.PI;
     }
 
     // Method to get the PID controller
@@ -128,13 +126,13 @@ public class Joint extends SubsystemBase {
         }
         posString = posString.substring(0,posString.length()-2)+"}\n";
         String pidString = "P: "+pid.getP()+"\nI: "+pid.getI()+"\nD: "+pid.getD()+"\n";
-        String currentPos = "current angle:"+encoder.getPosition()+"\n";
+        String currentPos = "current angle:"+encoder.getValue()+"\n";
         return start+posString+pidString+currentPos;
     }
     public void toSetpoint(int point){
         setSetpoint(setpoints[point]);
     }
-    public CoreCANcoder getEncoder() {
+    public Encoder getEncoder() {
         return encoder;
     } 
 }
