@@ -3,10 +3,12 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot;
-
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.GenericCommand;
+import frc.robot.commands.JointToPosition;
 import frc.robot.Constants.ArmConstants;
 import frc.robot.subsystems.ArmPosition;
+import frc.robot.subsystems.Grabber;
 import frc.robot.subsystems.Joint;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.Telescope;
@@ -16,11 +18,12 @@ import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-
-
+import com.pathplanner.lib.auto.NamedCommands;
+// import com.studica.frc.AHRS;
+// import com.studica.frc.AHRS.NavXComType;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -32,59 +35,75 @@ public class RobotContainer {
   
   // hardware objects vv
   private final SwerveSubsystem swerve = new SwerveSubsystem();
-  Joint shoulder1     = new Joint    (0, ArmConstants.shoulder1ID, ArmConstants.shoulderEncoderID , false, 0, 0, 0, 0, ArmConstants.shoulder1Type, ArmConstants.shoulderEncoderType );
-  Joint shoulder2     = new Joint    (0, ArmConstants.shoulder2ID, shoulder1.getEncoder()         , false, 0, 0, 0, 0, ArmConstants.shoulder2Type);
-  Joint wrist         = new Joint    (2, ArmConstants.wristID    , ArmConstants.wristEncoderID    , false, 0, 0, 0, 0, ArmConstants.wristType    , ArmConstants.wristEncoderType    );
-  Telescope telescope = new Telescope(1, ArmConstants.telescopeID, ArmConstants.telescopeEncoderID, false, 0, 0, 0, 0, ArmConstants.telescopeType, ArmConstants.telescopeEncoderType);
+  Joint shoulder1     = new Joint    (0, ArmConstants.shoulder1ID, ArmConstants.shoulderEncoderID , false, 0, 0.13, 0, 0.001, ArmConstants.shoulder1Type, ArmConstants.shoulderEncoderType);
+  Joint shoulder2     = new Joint    (0, ArmConstants.shoulder2ID, shoulder1.getEncoder()         , false, 0, 0.13, 0, 0.001, ArmConstants.shoulder2Type);
+  Joint wrist         = new Joint    (1, ArmConstants.wristID    , ArmConstants.wristEncoderID    , false, 0, 0.05, 0, 0, ArmConstants.wristType    , ArmConstants.wristEncoderType    );
+  Telescope telescope = new Telescope(2, ArmConstants.telescopeID, ArmConstants.telescopeEncoderID, true , 0, 0.2, 0, 0, ArmConstants.telescopeType, ArmConstants.telescopeEncoderType);
+  Grabber grabber = new Grabber();
+  PIDController steeringController = new PIDController(.03, 0, 0);
+  // AHRS navx = new AHRS(NavXComType.kMXP_SPI);
+
 
   // controllers vv
   private final static CommandGenericHID m_driverController =
         new CommandGenericHID(OperatorConstants.driverControllerPort);
   private final static CommandPS4Controller m_helperController =
         new CommandPS4Controller(OperatorConstants.helperControllerPort);
-
+  
+  
   // variables vv
   private Command driveCommand; 
   private boolean isFieldOriented = true;
+  private double steeringTargetAngle = 0;
+  private boolean doMaintainAngle = true;
+
 
   // commands vv
-  InstantCommand robotOrientCommand = new InstantCommand(()->{ isFieldOriented = true; });
-  InstantCommand fieldOrientCommand = new InstantCommand(()->{ isFieldOriented = false; });
+  Command resetGyro = swerve.getResetGyro().andThen(()->{steeringTargetAngle=0;});
+  InstantCommand robotOrientCommand = new InstantCommand(()->{ isFieldOriented = false; });
+  InstantCommand fieldOrientCommand = new InstantCommand(()->{ isFieldOriented = true ; });
   InstantCommand[] goToPositionCommand = new InstantCommand[ArmConstants.positions.length];
-  InstantCommand runArmManualCommand = new InstantCommand(()->{
-    shoulder1.setSetpoint(shoulder1.getSetpoint() + MathUtil.applyDeadband(m_helperController.getLeftY (), ArmConstants.manualControlJoystickDeaband));
+  InstantCommand grabCommand = new InstantCommand(()->grabber.grab());
+  InstantCommand releaseCommand = new InstantCommand(()->grabber.release());
+  InstantCommand stopGrabbingCommand = new InstantCommand(()->grabber.stop());
+  GenericCommand runArmManualCommand = new GenericCommand(()->{
+    shoulder1.setSetpoint(shoulder1.getSetpoint() + MathUtil.applyDeadband(-m_helperController.getLeftY (), ArmConstants.manualControlJoystickDeaband));
     shoulder2.setSetpoint(shoulder1.getSetpoint());
-    wrist    .setSetpoint(wrist    .getSetpoint() + MathUtil.applyDeadband(m_helperController.getLeftX (), ArmConstants.manualControlJoystickDeaband));
-    telescope.setSetpoint(telescope.getSetpoint() + MathUtil.applyDeadband(m_helperController.getRightY(), ArmConstants.manualControlJoystickDeaband));
+    wrist    .setSetpoint(wrist    .getSetpoint() + MathUtil.applyDeadband( m_helperController.getLeftX (), ArmConstants.manualControlJoystickDeaband));
+    telescope.setSetpoint(telescope.getSetpoint() - 0.1*MathUtil.applyDeadband( m_helperController.getRightY(), ArmConstants.manualControlJoystickDeaband));
   });
+  GenericCommand steeringCommand = new GenericCommand(
+    ()->doMaintainAngle=false, 
+    ()->{}, 
+    ()->{ steeringTargetAngle = swerve.getHeading().getDegrees(); doMaintainAngle=true; }
+  );
+  InstantCommand calibrateTelescope = new InstantCommand(()->{telescope.calibrateWithColors();});
+
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
-      // #keypoints defining the drive command
+
+      // defining the drive command
       driveCommand = swerve.driveCommand(
-        () -> -MathUtil.applyDeadband(m_driverController.getRawAxis(1), Constants.DEADBAND),
-        () -> -MathUtil.applyDeadband(m_driverController.getRawAxis(0), Constants.DEADBAND),
-        () ->  MathUtil.applyDeadband(m_driverController.getRawAxis(2), Constants.DEADBAND), 
+        () -> -MathUtil.applyDeadband(m_helperController.getL2Axis() > 0.5 ? 
+                  m_helperController.getLeftY() : 
+                  m_driverController.getRawAxis(1), Constants.DEADBAND),
+        () -> -MathUtil.applyDeadband(m_helperController.getL2Axis() > 0.5 ? 
+                  m_helperController.getLeftX() : 
+                  m_driverController.getRawAxis(0), Constants.DEADBAND),
+        () ->  doMaintainAngle&&false ? 
+                  steeringController.calculate(steeringTargetAngle, swerve.getHeading().getDegrees()) : 
+                  MathUtil.applyDeadband(m_helperController.getL2Axis() > 0.5 ? 
+                  m_helperController.getRightX() : 
+                  m_driverController.getRawAxis(2), Constants.DEADBAND),
         () ->  isFieldOriented
       );
       
       swerve.setDefaultCommand(driveCommand);
 
+      steeringController.enableContinuousInput(0, 360);
 
-      // #keypoints defining all the setpoint commands
-      for(int i = 0; i<ArmConstants.positions.length; i++){
-        ArmPosition thisArmPosition = ArmConstants.positions[i];
-        goToPositionCommand[i] = new InstantCommand(()->{
-          wrist    .setSetpoint(thisArmPosition.getWristPos    ());
-          shoulder1.setSetpoint(thisArmPosition.getShoulderPos ());
-          shoulder2.setSetpoint(thisArmPosition.getShoulderPos ());
-          telescope.setSetpoint(thisArmPosition.getTelescopePos());
-          SmartDashboard.putString("Arm Setpoint", thisArmPosition.getName());
-        });
-      }
-
-
-      // #keypoints Configure the trigger bindings
+      configureArmSystems();
       configureBindings();
     }
   
@@ -98,10 +117,18 @@ public class RobotContainer {
      * joysticks}.
      */
     private void configureBindings() {
-      m_driverController.button(11).onTrue(swerve.getResetGyro());
+      m_driverController.button(11).onTrue(resetGyro);
       m_driverController.button(2).whileTrue(swerve.vishionDrive());
       m_driverController.button(5).onFalse(fieldOrientCommand);
       m_driverController.button(5).onTrue(robotOrientCommand);
+
+      m_driverController.button(1).onTrue (goToPositionCommand[11]);
+      m_driverController.button(1).onFalse(goToPositionCommand[10]);
+
+      m_driverController.axisMagnitudeGreaterThan(2, Constants.DEADBAND).whileTrue(steeringCommand);
+      m_driverController.button(1).onTrue(grabCommand);
+      m_driverController.button(2).onTrue(releaseCommand);
+      m_driverController.button(1).or(m_driverController.button(2)).onFalse(stopGrabbingCommand);
 
       CommandPS4Controller hc = m_helperController;
 
@@ -130,13 +157,55 @@ public class RobotContainer {
       hc.L1().and(hc.povDown()).and(hc.circle()).onTrue(goToPositionCommand[17]);
       hc.L1().and(hc.povUp  ()).and(hc.circle()).onTrue(goToPositionCommand[18]);
       
-      // rest position, zero gyro, and manual arm
+      // rest position (0), zero gyro, and manual arm
       hc.cross().and(hc.R2()).onTrue(goToPositionCommand[0]);
-      hc.square().and(hc.R2()).onTrue(swerve.getResetGyro());
+      hc.square().and(hc.R2()).onTrue(resetGyro);
       hc.R2().whileTrue(runArmManualCommand);
 
+      // climb controls (10 & 11)
+      hc.L1().and(hc.R1()).onTrue (goToPositionCommand[11]);
+      hc.L1().and(hc.R1()).onFalse(goToPositionCommand[10].andThen(()->{doMaintainAngle=false;}));
+      hc.R2().and(hc.triangle()).onTrue(calibrateTelescope);
     }
     
+    /**
+     * sets default commands for systems
+     * configures all position commands
+     * configures bounds
+     * applies encoder offsets
+     * register arm commands to pathplanner
+     */
+    private void configureArmSystems(){
+      shoulder1.setDefaultCommand(new JointToPosition(shoulder1));
+      shoulder2.setDefaultCommand(new JointToPosition(shoulder2));
+      wrist    .setDefaultCommand(new JointToPosition(wrist    ));
+      telescope.setDefaultCommand(new JointToPosition(telescope));
+
+      shoulder1.applyBounds(ArmConstants.shoulderMin , ArmConstants.shoulderMax );
+      shoulder2.applyBounds(ArmConstants.shoulderMin , ArmConstants.shoulderMax );
+      telescope.applyBounds(ArmConstants.telescopeMin, ArmConstants.telescopeMax);
+      wrist    .applyBounds(ArmConstants.wristMax    , ArmConstants.wristMax    );
+
+      shoulder1.getEncoder().setOffset(ArmConstants.shoulderOffset /360);
+      telescope.getEncoder().setOffset(ArmConstants.telescopeOffset/360);
+      wrist    .getEncoder().setOffset(ArmConstants.wristOffset    /360);
+
+      telescope.calibrateWithColors();
+
+      // defining all the setpoint commands
+      for(int i = 0; i<ArmConstants.positions.length; i++){
+        ArmPosition thisArmPosition = ArmConstants.positions[i];
+        goToPositionCommand[i] = new InstantCommand(()->{
+          wrist    .setSetpoint(thisArmPosition.getWristPos    ());
+          shoulder1.setSetpoint(thisArmPosition.getShoulderPos ());
+          shoulder2.setSetpoint(thisArmPosition.getShoulderPos ());
+          telescope.setSetpoint(thisArmPosition.getTelescopePos());
+          SmartDashboard.putString("Arm Setpoint", thisArmPosition.getName());
+        });
+        NamedCommands.registerCommand(thisArmPosition.getName(), goToPositionCommand[i]);
+      }
+    }
+
     /**
      * Use this to pass the autonomous command to the main {@link Robot} class.
      *
@@ -144,9 +213,11 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
       // An example command will be run in autonomous
-      return swerve.getAutonomousCommand("test");
+      return swerve.getAutonomousCommand(OperatorConstants.AutonomousCommandName);
     }
     
+    public void periodic(){ }
+
     public SwerveSubsystem getSwerve() {
       return swerve;
     }

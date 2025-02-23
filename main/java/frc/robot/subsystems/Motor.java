@@ -40,5 +40,15 @@ public class Motor {
                 break;
         }
     }
+    public double getVoltage() {
+        switch (type) {
+            case SparkMax:
+                return sparkMax.get();
+            case talon:
+                return talon.get();
+            default:
+                return 0;
+        }
+    }
 
 }

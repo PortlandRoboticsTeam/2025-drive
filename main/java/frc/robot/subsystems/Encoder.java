@@ -25,11 +25,12 @@ public class Encoder {
             default:
                 break;
         }
+        // cancoder.getFaultField().get
     }
     public double getValue(){
         switch (type) {
             case CANCoder:
-                return cancoder.getAbsolutePosition().getValueAsDouble()-offset;
+                return cancoder.getPosition().getValueAsDouble()-offset;
             case DutyCycle:
                 return dutyEncoder.get()-offset;
             default:
@@ -38,6 +39,10 @@ public class Encoder {
     }
     public void setOffset(double offset){
         this.offset = offset;
+    }
+    public void setOffsetTo(double newOffset){
+        setOffset(0);
+        setOffset(getValue()-newOffset);
     }
     public boolean isConnected(){
         switch (type) {

@@ -6,12 +6,10 @@ import frc.robot.subsystems.Joint;
 
 public class JointToPosition extends Command{
     Joint m_joint;
-    double[] setpoints;
     Encoder encoder;
 
     public JointToPosition(Joint joint) {
     m_joint = joint;
-    setpoints = m_joint.getSetpoints();
     encoder = joint.getEncoder();
 
     // Use addRequirements() here to declare subsystem dependencies.
@@ -25,10 +23,13 @@ public class JointToPosition extends Command{
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (encoder.isConnected()) {
-      double output = m_joint.getController().calculate(m_joint.getAngleDegrees(), m_joint.getSetpoint());
-      m_joint.setSpeed(output);
-    }
+    if(m_joint.isPIDEnabled())
+      if (encoder.isConnected()) {
+        double output = m_joint.getController().calculate(m_joint.getAngleDegrees(), m_joint.getSetpoint());
+        m_joint.setSpeed(output);
+      }else{
+        m_joint.stop();
+      }
     
   }
 
