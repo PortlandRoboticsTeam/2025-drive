@@ -9,6 +9,7 @@ public class Encoder {
     DutyCycleEncoder dutyEncoder;
     EncoderType type;
     double offset = 0;
+
     public enum EncoderType{
         CANCoder,
         DutyCycle,
@@ -42,7 +43,7 @@ public class Encoder {
     }
     public void setOffsetTo(double newOffset){
         setOffset(0);
-        setOffset(getValue()-newOffset);
+        setOffset(getValue());
     }
     public boolean isConnected(){
         switch (type) {

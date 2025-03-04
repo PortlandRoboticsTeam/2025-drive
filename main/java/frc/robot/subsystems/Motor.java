@@ -8,6 +8,7 @@ public class Motor {
     MotorType type;
     SparkMax sparkMax;
     TalonFX talon;
+    boolean inverted;
 
     public enum MotorType{
         SparkMax,
@@ -31,10 +32,10 @@ public class Motor {
     public void set(double output) {
         switch (type) {
             case SparkMax:
-                sparkMax.set(output);
+                sparkMax.set(inverted?-output:output);
                 break;
             case talon:
-                talon.set(output);
+                talon.set(inverted?-output:output);
                 break;
             default:
                 break;
@@ -49,6 +50,9 @@ public class Motor {
             default:
                 return 0;
         }
+    }
+    public void invert() {
+        inverted = !inverted;
     }
 
 }

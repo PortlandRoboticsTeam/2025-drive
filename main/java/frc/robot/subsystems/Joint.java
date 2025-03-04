@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.util.function.BooleanSupplier;
+
 // Import necessary libraries for hardware control and PID management
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -62,7 +64,7 @@ public class Joint extends SubsystemBase {
         SmartDashboard.putNumber("current angle for joint number "+jointNum, getAngleDegrees());
         SmartDashboard.putNumber("current setPoint Degrees for joint number "+jointNum, setpoint);
         SmartDashboard.putString("joint "+jointNum+" info", toString());
-        
+        SmartDashboard.putBoolean("is near pos", isNearSetpoint(5));
     }
 
     // Method to set the current position index
@@ -133,7 +135,7 @@ public class Joint extends SubsystemBase {
     public String toString(){
         String start = "Joint number:"+jointNum+"\n setpoint : "+setpoint+"\n";
         String pidString = "P: "+pid.getP()+"\nI: "+pid.getI()+"\nD: "+pid.getD()+"\n";
-        String currentPos = "current angle:"+encoder.getValue()+" at voltage "+motor.getVoltage();
+        String currentPos = "current angle:"+getAngleDegrees()+" at voltage "+motor.getVoltage();
         return start+pidString+currentPos;
     }
     
@@ -148,4 +150,11 @@ public class Joint extends SubsystemBase {
     public Command getGoToCommand(double newSetpoint, double tolerance){
         return new GenericCommand(()->setSetpoint(newSetpoint), ()->isNearSetpoint(tolerance));
     }
+    public void setPIDValue(double p, double i, double d){
+        pid.setPID(p, i, d);
+    }
+    public void initialize(){
+        setSetpoint(getAngleDegrees());
+    }
+
 }

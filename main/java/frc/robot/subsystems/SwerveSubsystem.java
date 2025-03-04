@@ -249,9 +249,9 @@ public Command vishionDrive(){
   return run(() -> {
     // Make the robot move
     SmartDashboard.putNumber("visOut", limelight.getx());
-    swerveDrive.drive(new Translation2d(limelight.getx() ,
-                                        RobotContainer.getController().getRawAxis(0)),
-                      limelight.getAngle(),
+    swerveDrive.drive(new Translation2d(limelight.getx()+RobotContainer.getController().getRawAxis(1),
+                                        -limelight.gety()-RobotContainer.getController().getRawAxis(0)),
+                      0,
                       false,
                       false);
   });

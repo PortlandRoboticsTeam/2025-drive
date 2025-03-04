@@ -19,7 +19,7 @@ public class Limelight extends SubsystemBase{
     return -(useRight?right:left).getEntry("ty").getDouble(0)*p;
   }
 
-  public double getAngle() {
+  public double gety() {
     double p = .1;
     return (useRight?right:left).getEntry("tx").getDouble(0)*p;
   }
